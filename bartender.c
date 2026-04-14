@@ -30,6 +30,13 @@ void *bartender(void *args) {
  */
 void waitForCustomer() {
 	printf("\t\t\t\t\t\t\t\t\t\t\t| Bartender\n");
+	//So this is a weird one, but the behavior of the bartender doesn't change
+	//until the customer places an order, so we can just wait for the customerReady 
+	//semaphore to be posted (this is what this is representing)
+
+	//wait for customer to order drink
+	sem_wait(customerReady);
+
 }
 
 /**
@@ -39,6 +46,16 @@ void waitForCustomer() {
  */
 void makeDrink() {
 	printf("\t\t\t\t\t\t\t\t\t\t\t| \t\tBartender\n");
+	//get a random time between 5 ms and 1000 ms
+	unsigned int makeTime = 5 + (rand() % 996);
+	//sleep for that time (usleep takes microseconds, so multiply by 1000
+	usleep(makeTime * 1000);
+	
+	//after making the drink, post to the bartenderReady semaphore to let the customer know
+	sem_post(bartenderReady);
+
+	//no need to wait for the customer to finish looking at art, the bartender
+	//can do that while waiting for the customer to pay
 }
 
 /**
@@ -49,6 +66,12 @@ void receivePayment() {
 	// at the register waiting for customer to pay
 	printf("\t\t\t\t\t\t\t\t\t\t\t| \t\t\t\tBartender\n");
 
+	//wait for the customer to pay at the register
+	sem_wait(customerReady);
+
 	// got paid by the customer!
 	printf("\t\t\t\t\t\t\t\t\t\t\t| \t\t\t\t\t\tBartender\n");
+
+	//confirm payment is recieved so the customer can leave
+	sem_post(bartenderReady);
 }

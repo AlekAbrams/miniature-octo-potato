@@ -32,6 +32,10 @@ void *customer(void *args) {
  */
 void custTravelToBar(unsigned int custID) {
 	printf("Cust %u\t\t\t\t\t\t\t\t\t\t\t|\n", custID);
+	//get a random time
+	unsigned int travelTime = 20 + (rand() % 4981);
+	//sleep for that time (usleep takes microseconds, so multiply by 1000 to get milliseconds)
+	usleep(travelTime * 1000);
 }
 
 /**
@@ -41,6 +45,9 @@ void custTravelToBar(unsigned int custID) {
  */
 void custArriveAtBar(unsigned int custID) {
 	printf("\t\tCust %u\t\t\t\t\t\t\t\t\t|\n", custID);
+	//wait for the barstool semaphore to be available, then take it
+	sem_wait(barstool);
+
 }
 
 /**
@@ -49,6 +56,10 @@ void custArriveAtBar(unsigned int custID) {
  */
 void custPlaceOrder(unsigned int custID) {
 	printf("\t\t\t\tCust %u\t\t\t\t\t\t\t|\n", custID);
+	//order drink, then browse art while waiting for the drink to be made
+
+	sem_post(customerReady);
+
 }
 
 /**
@@ -57,6 +68,11 @@ void custPlaceOrder(unsigned int custID) {
  */
 void custBrowseArt(unsigned int custID) {
 	printf("\t\t\t\t\t\tCust %u\t\t\t\t\t|\n", custID);
+	//get a random time between 3ms and 4000ms
+	unsigned int browseTime = 3 + (rand() % 3998);
+	//sleep for that time (usleep takes microseconds, so multiply by 1000
+
+	usleep(browseTime * 1000);
 }
 
 /**
@@ -66,11 +82,24 @@ void custBrowseArt(unsigned int custID) {
  */
 void custAtRegister(unsigned int custID) {
 	printf("\t\t\t\t\t\t\t\tCust %u\t\t\t|\n", custID);
+	//wait for the bartender to finish making drink, then pay at the cash register
+	sem_wait(bartenderReady);
+
+
+	sem_post(customerReady);
+
+	//wait for bartender to confirm payment is recieved before leaving
+	sem_wait(bartenderReady);
 }
+
 
 /**
  * The customer in the bar leaves the bar.
  */
 void custLeaveBar(unsigned int custID) {
 	printf("\t\t\t\t\t\t\t\t\t\tCust %u\t|\n", custID);
+
+	//wait for the bartender to confirm payment, then leave by incrementing barstool
+
+	sem_post(barstool);
 }
